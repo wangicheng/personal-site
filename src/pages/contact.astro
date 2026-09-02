@@ -1,0 +1,155 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Icon from '../components/Icon.astro';
+import { contactLinks, profile } from '../data/site';
+
+const iconFor = (kind: string) => {
+	switch (kind) {
+		case 'github':
+			return 'github';
+		case 'discord':
+			return 'discord';
+		case 'leetcode':
+			return 'leetcode';
+		case 'email':
+			return 'mail';
+		default:
+			return 'globe';
+	}
+};
+
+const trailingIcon = (kind: string) => {
+	switch (kind) {
+		case 'email':
+			return 'arrow-right';
+		default:
+			return 'arrow-up-right';
+	}
+};
+---
+
+<Base
+	title="Contact"
+	description={`Get in touch with ${profile.name} (${profile.nameEn}) — Email and social links.`}
+>
+	<section class="container section">
+		<SectionHeading title="Get in touch">
+			The fastest way to reach me is email or discord. Open to research
+			collaborations, lab inquiries, and interesting technical problems.
+		</SectionHeading>
+
+		<ul class="contact-list">
+			{
+				contactLinks.map(l => (
+					<li>
+						<a
+							class="glow-card contact-row"
+							href={l.href}
+							target={l.kind === 'email' ? undefined : '_blank'}
+							rel={l.kind === 'email' ? undefined : 'noreferrer'}
+							data-copy={l.copyText}
+						>
+							<span class="contact-icon">
+								<Icon name={iconFor(l.kind)} size={20} />
+							</span>
+							<span class="contact-text">
+								<span class="contact-label mono">
+									{l.label}
+								</span>
+								<span class="contact-value">{l.value}</span>
+							</span>
+							<Icon name={trailingIcon(l.kind)} size={18} />
+						</a>
+					</li>
+				))
+			}
+		</ul>
+
+		<p class="contact-note mono">
+			Based in {profile.location} · Typically replies within 24 hours
+		</p>
+	</section>
+</Base>
+
+<style>
+	.section {
+		padding-block: 7rem 4rem;
+		min-height: 70vh;
+	}
+	.contact-list {
+		list-style: none;
+		margin: 2rem 0 0;
+		padding: 0;
+		display: grid;
+		gap: 1rem;
+		max-width: 40rem;
+	}
+	.contact-row {
+		display: flex;
+		align-items: center;
+		gap: 1.1rem;
+		padding: 1.2rem 1.4rem;
+		position: relative;
+	}
+	.contact-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.8rem;
+		height: 2.8rem;
+		flex: none;
+		border-radius: 12px;
+		border: 1px solid var(--line);
+		background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+		color: var(--accent);
+	}
+	.contact-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		margin-right: auto;
+		min-width: 0;
+	}
+	.contact-label {
+		font-size: 0.7rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.contact-value {
+		font-family: var(--font-sans);
+		font-weight: 500;
+		font-size: 1.05rem;
+		color: var(--fg);
+		overflow-wrap: anywhere;
+	}
+	.contact-row :global(svg:last-child) {
+		color: var(--muted);
+		flex: none;
+		transition: color 0.18s ease;
+	}
+	.contact-row:hover :global(svg:last-child) {
+		color: var(--accent);
+	}
+	.contact-row.copied :global(svg:last-child) {
+		color: var(--accent);
+	}
+	.contact-row.copied::after {
+		content: 'Copied';
+		position: absolute;
+		top: 0.7rem;
+		right: 0.95rem;
+		font-family: var(--font-mono);
+		font-size: 0.6rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--accent);
+	}
+	.contact-note {
+		margin-top: 2.5rem;
+		color: var(--muted);
+		font-size: 0.82rem;
+		letter-spacing: 0.06em;
+	}
+</style>

@@ -1,0 +1,324 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import Icon from '../../components/Icon.astro';
+import { profile } from '../../data/site';
+import { getPath } from '../../lib/url';
+import { renderLatex } from '../../lib/latex';
+
+const projects = (await getCollection('projects')).sort((a, b) => {
+	if (a.data.isCore !== b.data.isCore) return a.data.isCore ? -1 : 1;
+	return (b.data.date || '').localeCompare(a.data.date || '');
+});
+---
+
+<Base
+	title="Projects"
+	description={`Projects by ${profile.name} (${profile.nameEn}) — Systems, algorithms, and open-source tooling.`}
+>
+	<section class="container section">
+		<SectionHeading title="Projects">
+			The fuller story behind my work — core systems, algorithm platforms,
+			and open-source tools.
+		</SectionHeading>
+
+		<div class="project-list">
+			{
+				projects.map(project => {
+					const p = project.data;
+					const slug = project.id;
+					const hasArticle = p.isCore || p.hasArticle;
+
+					return (
+						<article class="glow-card panel" id={slug}>
+							<header class="panel-head">
+								<div>
+									<h2 class="panel-name">
+										{hasArticle ? (
+											<a
+												href={getPath(
+													`/projects/${slug}`
+												)}
+												class="panel-title-link"
+											>
+												{p.title}
+											</a>
+										) : (
+											p.title
+										)}
+									</h2>
+									<p class="panel-role mono">
+										{p.role} · {p.period}
+									</p>
+								</div>
+								{p.metric && (
+									<div class="panel-metric">
+										<span class="gradient-text panel-metric-value">
+											{p.metric.value}
+										</span>
+										<span class="panel-metric-label">
+											{p.metric.label}
+										</span>
+									</div>
+								)}
+							</header>
+
+							<div class="panel-body">
+								<p set:html={renderLatex(p.summary)} />
+							</div>
+
+							{p.image && (
+								<figure class="panel-shot">
+									<Image
+										src={p.image}
+										alt={p.title}
+										loading="lazy"
+										decoding="async"
+									/>
+								</figure>
+							)}
+
+							<div class="panel-cols">
+								{p.highlights && p.highlights.length > 0 && (
+									<div>
+										<h3 class="panel-sub mono">
+											Highlights
+										</h3>
+										<ul class="panel-highlights">
+											{p.highlights.map(h => (
+												<li set:html={renderLatex(h)} />
+											))}
+										</ul>
+									</div>
+								)}
+								<div>
+									<h3 class="panel-sub mono">Stack</h3>
+									<ul class="tag-row">
+										{p.tags.map(t => (
+											<li class="tag">{t}</li>
+										))}
+									</ul>
+									<div class="panel-links">
+										{hasArticle && (
+											<a
+												class="project-link"
+												href={getPath(
+													`/projects/${slug}`
+												)}
+											>
+												Details
+												<Icon
+													name="arrow-right"
+													size={15}
+												/>
+											</a>
+										)}
+										{p.githubUrl && (
+											<a
+												class="project-link"
+												href={p.githubUrl}
+												target="_blank"
+												rel="noreferrer"
+											>
+												GitHub
+												<Icon
+													name="arrow-up-right"
+													size={15}
+												/>
+											</a>
+										)}
+										{p.demoUrl && (
+											<a
+												class="project-link"
+												href={p.demoUrl}
+												target="_blank"
+												rel="noreferrer"
+											>
+												Live Demo
+												<Icon
+													name="arrow-up-right"
+													size={15}
+												/>
+											</a>
+										)}
+									</div>
+								</div>
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+
+		<div class="projects-foot">
+			<p class="mono">More on GitHub.</p>
+			<div class="hero-actions">
+				<a
+					class="btn-primary"
+					href={profile.githubUrl}
+					target="_blank"
+					rel="noreferrer"
+				>
+					<Icon name="github" size={17} />
+					github.com/{profile.githubUsername}
+				</a>
+				<a class="btn-ghost" href={getPath('/experience')}>
+					View experience
+				</a>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<style>
+	.section {
+		padding-block: 7rem 4rem;
+	}
+	.project-list {
+		display: grid;
+		gap: 1.5rem;
+	}
+	.panel {
+		padding: clamp(1.5rem, 4vw, 2.4rem);
+		scroll-margin-top: 6rem;
+	}
+	.panel-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 1.2rem;
+		border-bottom: 1px solid var(--line);
+	}
+	.panel-name {
+		font-size: clamp(1.5rem, 3.5vw, 2rem);
+	}
+	.panel-title-link {
+		color: var(--fg);
+		transition: color 0.18s ease;
+	}
+	.panel-title-link:hover {
+		color: var(--accent);
+	}
+	.panel-role {
+		margin-top: 0.4rem;
+		font-size: 0.78rem;
+		color: var(--accent);
+		letter-spacing: 0.04em;
+	}
+	.panel-metric {
+		text-align: right;
+	}
+	.panel-metric-value {
+		display: block;
+		font-family: var(--font-sans);
+		font-weight: 700;
+		font-size: 1.8rem;
+		line-height: 1;
+	}
+	.panel-metric-label {
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+	.panel-body {
+		display: grid;
+		gap: 0.9rem;
+		margin-top: 1.3rem;
+		color: var(--muted);
+		font-size: 1.02rem;
+		max-width: 70ch;
+		line-height: 1.65;
+	}
+	.panel-shot {
+		margin: 1.6rem 0 0;
+		border-radius: 12px;
+		border: 1px solid var(--line);
+		overflow: hidden;
+		line-height: 0;
+	}
+	.panel-shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.panel-cols {
+		display: grid;
+		gap: 1.6rem;
+		margin-top: 1.6rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 720px) {
+		.panel-cols {
+			grid-template-columns: 1.4fr 1fr;
+		}
+	}
+	.panel-sub {
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.9rem;
+	}
+	.panel-highlights {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.panel-highlights li {
+		position: relative;
+		padding-left: 1.4rem;
+		color: var(--fg);
+		font-size: 0.96rem;
+		line-height: 1.6;
+	}
+	.panel-highlights li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.55em;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--accent);
+	}
+	.panel-links {
+		margin-top: 1.1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.8rem 1.2rem;
+	}
+	.project-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: var(--fg);
+		transition: color 0.16s ease;
+	}
+	.project-link:hover {
+		color: var(--accent);
+	}
+	.projects-foot {
+		margin-top: 4rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.2rem;
+	}
+	.projects-foot p {
+		color: var(--muted);
+		font-size: 0.85rem;
+		letter-spacing: 0.05em;
+	}
+	.projects-foot .hero-actions {
+		justify-content: center;
+	}
+</style>

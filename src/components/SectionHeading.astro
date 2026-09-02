@@ -1,0 +1,49 @@
+---
+interface Props {
+	eyebrow?: string;
+	title: string;
+	id?: string;
+	align?: 'left' | 'center';
+}
+const { eyebrow, title, id, align = 'left' } = Astro.props;
+---
+
+<div class:list={['section-heading', { centered: align === 'center' }]} id={id}>
+	{eyebrow && <span class="eyebrow">{eyebrow}</span>}
+	<h2 class="section-title"><slot name="title">{title}</slot></h2>
+	{
+		Astro.slots.has('default') && (
+			<p class="section-lead">
+				<slot />
+			</p>
+		)
+	}
+</div>
+
+<style>
+	.section-heading {
+		scroll-margin-top: 6rem;
+		margin-bottom: 2.5rem;
+	}
+	.section-heading.centered {
+		text-align: center;
+		margin-inline: auto;
+		max-width: 42rem;
+	}
+	.section-title {
+		margin-top: 0.9rem;
+		font-size: clamp(1.9rem, 4.2vw, 2.9rem);
+	}
+	.section-title:first-child {
+		margin-top: 0;
+	}
+	.section-lead {
+		margin-top: 1rem;
+		color: var(--muted);
+		font-size: 1.05rem;
+		max-width: 44rem;
+	}
+	.centered .section-lead {
+		margin-inline: auto;
+	}
+</style>

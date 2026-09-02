@@ -1,0 +1,119 @@
+---
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+import { ClientRouter } from 'astro:transitions';
+import Background from '../components/Background.astro';
+import ScrollRail from '../components/ScrollRail.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { profile } from '../data/site';
+import { getPath } from '../lib/url';
+import logoImg from '../assets/logo.png';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title,
+	description = `${profile.name} (${profile.nameEn}) - ${profile.title}`
+} = Astro.props;
+
+const pageTitle = title
+	? `${title} · ${profile.nameEn}`
+	: `${profile.name} (${profile.nameEn})`;
+
+const canonical = new URL(
+	Astro.url.pathname,
+	Astro.site || 'https://wangicheng.github.io'
+).href;
+
+const ogImageUrl = new URL(
+	logoImg.src,
+	Astro.site || 'https://wangicheng.github.io'
+).href;
+
+const personSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'Person',
+	name: profile.name,
+	alternateName: profile.nameEn,
+	url: Astro.site?.href,
+	jobTitle: profile.title,
+	email: `mailto:${profile.email}`,
+	sameAs: [profile.githubUrl]
+};
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{pageTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		<link
+			rel="icon"
+			href={getPath('/assets/favicon.webp')}
+			type="image/webp"
+		/>
+		<link rel="icon" href={getPath('/assets/favicon.png')} sizes="any" />
+		<link rel="apple-touch-icon" href={getPath('/assets/favicon.png')} />
+		<meta name="theme-color" content="#14161f" />
+		<meta name="author" content={`${profile.name} (${profile.nameEn})`} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={ogImageUrl} />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+		/>
+
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify(personSchema)}
+		/>
+
+		<ClientRouter />
+	</head>
+	<body>
+		<Background />
+		<ScrollRail />
+		<Nav />
+		<main>
+			<slot />
+		</main>
+		<Footer />
+
+		<script>
+			const flashCopied = (el: HTMLElement) => {
+				el.classList.add('copied');
+				setTimeout(() => el.classList.remove('copied'), 1400);
+			};
+
+			document.addEventListener('click', e => {
+				const target = (e.target as HTMLElement)?.closest<HTMLElement>(
+					'[data-copy]'
+				);
+				if (!target) return;
+				e.preventDefault();
+				navigator.clipboard
+					?.writeText(target.dataset.copy || '')
+					.then(() => flashCopied(target))
+					.catch(() => {});
+			});
+		</script>
+	</body>
+</html>

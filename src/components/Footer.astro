@@ -1,0 +1,189 @@
+---
+import { profile, contactLinks } from '../data/site';
+import { getPath } from '../lib/url';
+import Icon from './Icon.astro';
+
+const iconFor = (kind: string) => {
+	switch (kind) {
+		case 'github':
+			return 'github';
+		case 'discord':
+			return 'discord';
+		case 'leetcode':
+			return 'leetcode';
+		case 'email':
+			return 'mail';
+		default:
+			return 'globe';
+	}
+};
+---
+
+<footer class="site-footer">
+	<div class="container footer-grid">
+		<div class="footer-brand">
+			<a href={getPath('/')} class="footer-mark"
+				>{profile.name}<span> / {profile.nameEn}</span></a
+			>
+			<p class="footer-blurb">
+				{profile.bio}
+			</p>
+		</div>
+
+		<nav class="footer-col" aria-label="Elsewhere">
+			<h3 class="footer-head mono">Elsewhere</h3>
+			<ul>
+				{
+					contactLinks.map(l => (
+						<li>
+							<a
+								href={l.href}
+								target={
+									l.kind === 'email' ? undefined : '_blank'
+								}
+								rel={
+									l.kind === 'email'
+										? undefined
+										: 'noreferrer'
+								}
+								data-copy={l.copyText}
+							>
+								<Icon name={iconFor(l.kind)} size={16} />
+								<span>{l.label}</span>
+								<span class="chev">
+									<Icon name="chevron-right" size={11} />
+								</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<nav class="footer-col" aria-label="Navigation">
+			<h3 class="footer-head mono">Navigation</h3>
+			<ul>
+				<li>
+					<a href={getPath('/')}>
+						Home
+						<span class="chev"
+							><Icon name="chevron-right" size={11} /></span
+						>
+					</a>
+				</li>
+				<li>
+					<a href={getPath('/projects')}>
+						Projects
+						<span class="chev"
+							><Icon name="chevron-right" size={11} /></span
+						>
+					</a>
+				</li>
+				<li>
+					<a href={getPath('/experience')}>
+						Experience
+						<span class="chev"
+							><Icon name="chevron-right" size={11} /></span
+						>
+					</a>
+				</li>
+				<li>
+					<a href={getPath('/contact')}>
+						Contact
+						<span class="chev"
+							><Icon name="chevron-right" size={11} /></span
+						>
+					</a>
+				</li>
+			</ul>
+		</nav>
+	</div>
+</footer>
+
+<style>
+	.site-footer {
+		margin-top: 6rem;
+		border-top: 1px solid var(--line);
+		background: color-mix(in oklab, var(--surface) 40%, transparent);
+		backdrop-filter: blur(8px);
+	}
+	.footer-grid {
+		display: grid;
+		gap: 2.5rem;
+		padding-block: 3.5rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 640px) {
+		.footer-grid {
+			grid-template-columns: 2fr 1fr 1fr;
+		}
+	}
+	.footer-mark {
+		font-family: var(--font-sans);
+		font-weight: 600;
+		font-size: 1.2rem;
+		letter-spacing: -0.01em;
+		color: var(--fg);
+	}
+	.footer-mark span {
+		color: var(--accent);
+	}
+	.footer-blurb {
+		margin-top: 0.9rem;
+		max-width: 26rem;
+		color: var(--muted);
+		font-size: 0.95rem;
+	}
+	.footer-head {
+		font-size: 0.72rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.9rem;
+	}
+	.footer-col ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.footer-col a {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--muted);
+		font-size: 0.92rem;
+		transition: color 0.16s ease;
+	}
+	.footer-col a:hover {
+		color: var(--accent);
+	}
+	.footer-col a .chev {
+		display: inline-flex;
+		opacity: 0;
+		transform: translateX(-4px);
+		transition:
+			opacity 0.15s ease,
+			transform 0.15s ease;
+		flex-shrink: 0;
+	}
+	.footer-col a:hover .chev {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	.footer-col a.copied::after {
+		content: 'Copied';
+		position: absolute;
+		left: calc(100% + 0.5rem);
+		top: 50%;
+		transform: translateY(-50%);
+		font-family: var(--font-mono);
+		font-size: 0.58rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--accent);
+		white-space: nowrap;
+	}
+</style>

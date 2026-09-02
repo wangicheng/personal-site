@@ -1,0 +1,120 @@
+---
+import Icon from './Icon.astro';
+---
+
+<div class="scroller" aria-hidden="true" transition:persist="scroll-rail">
+	<div class="scrollerInner">
+		<div class="trackTop"></div>
+		<div class="thumb">
+			<Icon name="triangle" size={22} />
+		</div>
+		<div class="trackBottom"></div>
+	</div>
+</div>
+
+<style>
+	.scroller {
+		position: fixed;
+		left: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 60px;
+		height: 360px;
+		padding: 48px;
+		z-index: 40;
+		pointer-events: none;
+	}
+
+	.scrollerInner {
+		position: relative;
+		width: 2px;
+		height: 100%;
+		margin: 0 auto;
+		--thumb-size: 22px;
+		--track-gap: 4px;
+	}
+
+	.trackTop,
+	.trackBottom {
+		position: absolute;
+		left: 50%;
+		width: 2px;
+		border-radius: 2px;
+		transform: translateX(-50%);
+	}
+
+	.trackTop {
+		top: 0;
+		height: 0;
+		background: var(--accent);
+		box-shadow: 0 0 4px var(--accent);
+	}
+
+	.trackBottom {
+		bottom: 0;
+		height: 100%;
+		background: color-mix(in oklab, var(--fg) 22%, transparent);
+	}
+
+	.thumb {
+		position: absolute;
+		top: calc(var(--thumb-size) / 2);
+		left: 50%;
+		width: var(--thumb-size);
+		height: var(--thumb-size);
+		transform: translate(-50%, -50%) rotate(180deg);
+		color: var(--accent);
+		filter: drop-shadow(0 0 4px var(--accent));
+	}
+
+	@media (max-width: 1200px) {
+		.scroller {
+			display: none;
+		}
+	}
+</style>
+
+<script>
+	const thumb = document.querySelector<HTMLElement>('.scroller .thumb');
+	const trackTop = document.querySelector<HTMLElement>('.scroller .trackTop');
+	const trackBottom = document.querySelector<HTMLElement>(
+		'.scroller .trackBottom'
+	);
+	const inner = document.querySelector<HTMLElement>(
+		'.scroller .scrollerInner'
+	);
+
+	if (thumb && trackTop && trackBottom && inner) {
+		const update = () => {
+			const scrollMax =
+				document.documentElement.scrollHeight - window.innerHeight;
+
+			const pct =
+				scrollMax <= 0
+					? 0
+					: Math.min(1, Math.max(0, window.scrollY / scrollMax));
+
+			const styles = getComputedStyle(inner);
+			const thumbSize = thumb.offsetHeight || 22;
+			const gap =
+				parseFloat(styles.getPropertyValue('--track-gap')) || 16;
+			const h = inner.clientHeight;
+
+			const min = thumbSize / 2;
+			const max = h - thumbSize / 2;
+			const y = min + (max - min) * pct;
+
+			thumb.style.top = `${y}px`;
+
+			trackTop.style.height = `${Math.max(0, y - thumbSize / 2 - gap)}px`;
+			trackBottom.style.height = `${Math.max(
+				0,
+				h - y - thumbSize / 2 - gap
+			)}px`;
+		};
+
+		update();
+		window.addEventListener('scroll', update, { passive: true });
+		window.addEventListener('resize', update);
+	}
+</script>

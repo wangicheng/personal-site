@@ -1,0 +1,196 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import { getPath } from '../lib/url';
+import Icon from './Icon.astro';
+import { renderLatex } from '../lib/latex';
+
+interface Props {
+	project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { data, id } = project;
+const slug = id;
+const hasArticle = data.isCore || data.hasArticle;
+const targetHref = hasArticle
+	? getPath(`/projects/${slug}`)
+	: data.githubUrl || '#';
+---
+
+<article class="glow-card project-card">
+	{
+		data.image && (
+			<div class="project-shot">
+				<Image
+					src={data.image}
+					alt={data.title}
+					loading="lazy"
+					decoding="async"
+				/>
+			</div>
+		)
+	}
+
+	<div class="project-top">
+		<div>
+			<h3 class="project-name">
+				{
+					hasArticle ? (
+						<a href={targetHref} class="project-title-link">
+							{data.title}
+						</a>
+					) : (
+						data.title
+					)
+				}
+			</h3>
+			<p class="project-role mono">{data.role}</p>
+		</div>
+		{data.isCore && <span class="core-badge mono">Featured</span>}
+	</div>
+
+	<p class="project-summary" set:html={renderLatex(data.summary)} />
+
+	<ul class="tag-row">
+		{data.tags.map(t => <li class="tag">{t}</li>)}
+	</ul>
+
+	<div class="project-foot">
+		<span class="project-period mono">{data.period}</span>
+		<div class="project-actions">
+			{
+				hasArticle ? (
+					<a class="project-link" href={targetHref}>
+						Details
+						<Icon name="arrow-right" size={15} />
+					</a>
+				) : (
+					<a
+						class="project-link"
+						href={targetHref}
+						target="_blank"
+						rel="noreferrer"
+					>
+						GitHub
+						<Icon name="arrow-up-right" size={15} />
+					</a>
+				)
+			}
+			{
+				hasArticle && data.githubUrl && (
+					<a
+						class="project-link"
+						href={data.githubUrl}
+						target="_blank"
+						rel="noreferrer"
+					>
+						GitHub
+						<Icon name="arrow-up-right" size={15} />
+					</a>
+				)
+			}
+			{
+				data.demoUrl && (
+					<a
+						class="project-link"
+						href={data.demoUrl}
+						target="_blank"
+						rel="noreferrer"
+					>
+						Demo
+						<Icon name="arrow-up-right" size={15} />
+					</a>
+				)
+			}
+		</div>
+	</div>
+</article>
+
+<style>
+	.project-card {
+		display: flex;
+		flex-direction: column;
+		gap: 1.1rem;
+		padding: 1.6rem;
+		height: 100%;
+	}
+	.project-shot {
+		margin: -1.6rem -1.6rem 0.25rem;
+		border-bottom: 1px solid var(--line);
+		overflow: hidden;
+	}
+	.project-shot img {
+		display: block;
+		width: 100%;
+		height: auto;
+		transition: transform 0.45s ease;
+	}
+	.project-card:hover .project-shot img {
+		transform: scale(1.035);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.project-shot img {
+			transition: none;
+		}
+		.project-card:hover .project-shot img {
+			transform: none;
+		}
+	}
+	.project-top {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.8rem;
+	}
+	.project-name {
+		font-size: 1.3rem;
+	}
+	.project-title-link {
+		color: var(--fg);
+		transition: color 0.18s ease;
+	}
+	.project-title-link:hover {
+		color: var(--accent);
+	}
+	.project-role {
+		margin-top: 0.35rem;
+		font-size: 0.76rem;
+		letter-spacing: 0.05em;
+		color: var(--accent);
+	}
+	.core-badge {
+		font-size: 0.65rem;
+		padding: 0.2rem 0.55rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--accent) 50%, var(--line));
+		background: color-mix(in oklab, var(--accent) 12%, transparent);
+		color: var(--accent);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		flex: none;
+	}
+	.project-summary {
+		color: var(--muted);
+		font-size: 0.95rem;
+		flex: 1;
+		line-height: 1.65;
+	}
+	.project-foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-top: 0.6rem;
+		border-top: 1px solid var(--line);
+	}
+	.project-period {
+		font-size: 0.74rem;
+		color: var(--muted);
+	}
+	.project-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+	}
+</style>

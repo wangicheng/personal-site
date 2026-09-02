@@ -1,0 +1,260 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Icon from '../components/Icon.astro';
+import { profile } from '../data/site';
+import { getPath } from '../lib/url';
+import { renderLatex } from '../lib/latex';
+
+const experiences = (await getCollection('experience'))
+	.sort((a, b) => {
+		if (a.data.current !== b.data.current) return a.data.current ? -1 : 1;
+		return (b.data.date || '').localeCompare(a.data.date || '');
+	})
+	.map(e => e.data);
+---
+
+<Base
+	title="Experience"
+	description={`Academic background, competitions, examination results, and technical skillset of ${profile.name} (${profile.nameEn}).`}
+>
+	<section class="container section">
+		<SectionHeading title="Experience">
+			Academic background, competitive programming records, and
+			engineering expertise.
+		</SectionHeading>
+
+		<div class="exp-list">
+			{
+				experiences.map(e => (
+					<article class="glow-card panel">
+						<header class="panel-head">
+							<div>
+								<h2 class="panel-name">
+									{e.href ? (
+										<a
+											href={e.href}
+											class="panel-title-link"
+											target="_blank"
+											rel="noreferrer"
+										>
+											{e.title}
+										</a>
+									) : (
+										e.title
+									)}
+								</h2>
+								<p class="panel-role mono">
+									{e.role} · {e.period}
+								</p>
+							</div>
+							{e.metric && (
+								<div class="panel-metric">
+									<span class="gradient-text panel-metric-value">
+										{e.metric.value}
+									</span>
+									<span class="panel-metric-label">
+										{e.metric.label}
+									</span>
+								</div>
+							)}
+						</header>
+
+						<div class="panel-body">
+							<p set:html={renderLatex(e.summary)} />
+						</div>
+
+						<div class="panel-cols">
+							{e.highlights && e.highlights.length > 0 && (
+								<div>
+									<h3 class="panel-sub mono">Highlights</h3>
+									<ul class="panel-highlights">
+										{e.highlights.map(h => (
+											<li set:html={renderLatex(h)} />
+										))}
+									</ul>
+								</div>
+							)}
+							<div>
+								{e.tags && e.tags.length > 0 && (
+									<>
+										<h3 class="panel-sub mono">
+											Focus & Skills
+										</h3>
+										<ul class="tag-row">
+											{e.tags.map(t => (
+												<li class="tag">{t}</li>
+											))}
+										</ul>
+									</>
+								)}
+								{e.links && e.links.length > 0 && (
+									<div class="panel-links">
+										{e.links.map(l => (
+											<a
+												class="project-link"
+												href={l.href}
+												target="_blank"
+												rel="noreferrer"
+											>
+												{l.label}
+												<Icon
+													name="arrow-up-right"
+													size={15}
+												/>
+											</a>
+										))}
+									</div>
+								)}
+							</div>
+						</div>
+					</article>
+				))
+			}
+		</div>
+
+		<div class="page-foot">
+			<div class="hero-actions">
+				<a class="btn-primary" href={getPath('/projects')}>
+					View projects
+					<Icon name="arrow-right" size={16} />
+				</a>
+				<a class="btn-ghost" href={getPath('/contact')}>
+					Get in touch
+				</a>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<style>
+	.section {
+		padding-block: 7rem 4rem;
+	}
+	.exp-list {
+		display: grid;
+		gap: 1.5rem;
+	}
+	.panel {
+		padding: clamp(1.5rem, 4vw, 2.4rem);
+		scroll-margin-top: 6rem;
+	}
+	.panel-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 1.2rem;
+		border-bottom: 1px solid var(--line);
+	}
+	.panel-name {
+		font-size: clamp(1.5rem, 3.5vw, 2rem);
+	}
+	.panel-title-link {
+		color: var(--fg);
+		transition: color 0.18s ease;
+	}
+	.panel-title-link:hover {
+		color: var(--accent);
+	}
+	.panel-role {
+		margin-top: 0.4rem;
+		font-size: 0.78rem;
+		color: var(--accent);
+		letter-spacing: 0.04em;
+	}
+	.panel-metric {
+		text-align: right;
+	}
+	.panel-metric-value {
+		display: block;
+		font-family: var(--font-sans);
+		font-weight: 700;
+		font-size: 1.8rem;
+		line-height: 1;
+	}
+	.panel-metric-label {
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+	.panel-body {
+		display: grid;
+		gap: 0.9rem;
+		margin-top: 1.3rem;
+		color: var(--muted);
+		font-size: 1.02rem;
+		max-width: 70ch;
+		line-height: 1.65;
+	}
+	.panel-cols {
+		display: grid;
+		gap: 1.6rem;
+		margin-top: 1.6rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 720px) {
+		.panel-cols {
+			grid-template-columns: 1.4fr 1fr;
+		}
+	}
+	.panel-sub {
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.9rem;
+	}
+	.panel-highlights {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.panel-highlights li {
+		position: relative;
+		padding-left: 1.4rem;
+		color: var(--fg);
+		font-size: 0.96rem;
+		line-height: 1.6;
+	}
+	.panel-highlights li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.55em;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--accent);
+	}
+	.panel-links {
+		margin-top: 1.1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.8rem 1.2rem;
+	}
+	.project-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: var(--fg);
+		transition: color 0.16s ease;
+	}
+	.project-link:hover {
+		color: var(--accent);
+	}
+	.page-foot {
+		margin-top: 4.5rem;
+		display: flex;
+		justify-content: center;
+	}
+	.page-foot .hero-actions {
+		justify-content: center;
+	}
+</style>

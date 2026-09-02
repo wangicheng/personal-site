@@ -1,0 +1,125 @@
+---
+import { nav } from '../data/site';
+import { getPath } from '../lib/url';
+import MobileNav from './MobileNav.tsx';
+import Icon from './Icon.astro';
+
+const pathname = Astro.url.pathname;
+const isActive = (href: string) => {
+	if (href.startsWith('http')) return false;
+	const resolved = getPath(href);
+	if (href === '/') {
+		const rootPath = getPath('/');
+		return (
+			pathname === rootPath || pathname === rootPath.replace(/\/$/, '')
+		);
+	}
+	return pathname === resolved || pathname.startsWith(`${resolved}/`);
+};
+
+const resolvedNav = nav.map(l => ({
+	...l,
+	resolvedHref: l.external ? l.href : getPath(l.href)
+}));
+---
+
+<header class="site-header" id="site-header">
+	<div class="container nav-inner">
+		<nav class="nav-links" aria-label="Primary">
+			<ul>
+				{
+					resolvedNav.map(l => (
+						<li>
+							<a
+								href={l.resolvedHref}
+								class:list={[
+									'nav-link',
+									{ 'is-active': isActive(l.href) }
+								]}
+								target={l.external ? '_blank' : undefined}
+								rel={l.external ? 'noreferrer' : undefined}
+							>
+								{l.label}
+								{l.external && (
+									<Icon name="arrow-up-right" size={14} />
+								)}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<div class="nav-actions">
+			<MobileNav
+				client:load
+				links={resolvedNav.map(l => ({
+					label: l.label,
+					href: l.resolvedHref,
+					external: l.external
+				}))}
+				pathname={pathname}
+			/>
+		</div>
+	</div>
+</header>
+
+<script>
+	const syncHeader = () => {
+		document
+			.getElementById('site-header')
+			?.classList.toggle('is-scrolled', window.scrollY > 8);
+	};
+	window.addEventListener('scroll', syncHeader, { passive: true });
+	document.addEventListener('astro:page-load', syncHeader);
+	syncHeader();
+</script>
+
+<style>
+	.site-header {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		z-index: 50;
+		background: transparent;
+		border-bottom: 1px solid transparent;
+		transition:
+			background-color 0.3s ease,
+			border-color 0.3s ease,
+			backdrop-filter 0.3s ease;
+	}
+	.nav-inner {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		height: 4rem;
+	}
+	.nav-links {
+		display: none;
+	}
+	.nav-links ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		gap: 1.6rem;
+	}
+	.nav-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-left: auto;
+	}
+	@media (min-width: 768px) {
+		.site-header.is-scrolled {
+			background: color-mix(in oklab, var(--bg) 72%, transparent);
+			backdrop-filter: blur(16px);
+			border-bottom-color: var(--line);
+		}
+		.nav-links {
+			display: block;
+		}
+	}
+</style>

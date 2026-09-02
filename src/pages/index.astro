@@ -1,0 +1,440 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Icon from '../components/Icon.astro';
+import { profile } from '../data/site';
+import { getPath } from '../lib/url';
+
+const allProjects = (await getCollection('projects')).sort((a, b) => {
+	if (a.data.isCore !== b.data.isCore) return a.data.isCore ? -1 : 1;
+	return (b.data.date || '').localeCompare(a.data.date || '');
+});
+const featured = allProjects.filter(p => p.data.featured);
+
+const experiences = (await getCollection('experience'))
+	.sort((a, b) => {
+		if (a.data.current !== b.data.current) return a.data.current ? -1 : 1;
+		return (b.data.date || '').localeCompare(a.data.date || '');
+	})
+	.map(e => e.data);
+---
+
+<Base>
+	<section class="hero container" id="top">
+		<span class="eyebrow">{profile.nameEn} · {profile.location}</span>
+
+		<h1 class="hero-name">{profile.name}</h1>
+
+		<p class="hero-lead">
+			以 <strong>演算法與底層機制</strong> 為核心，專注於 <strong
+				class="gradient-text">系統軟體</strong
+			>、<strong class="gradient-text">語法解析</strong> 與 <strong
+				class="gradient-text">高效能資料結構</strong
+			>。
+		</p>
+
+		<p class="hero-sub mono">
+			具備扎實演算法底蘊與端到端工程實踐力 · 現正投入學術研究與研究所推甄
+		</p>
+
+		<div class="hero-actions">
+			<a class="btn-primary" href={getPath('/projects')}>
+				View projects
+				<Icon name="arrow-right" size={17} />
+			</a>
+			<a class="btn-ghost" href={getPath('/experience')}>
+				View experience
+			</a>
+		</div>
+
+		<a
+			class="scroll-hint"
+			href="#featured-projects"
+			aria-label="Scroll to featured projects"
+		>
+			<span class="mono">scroll</span>
+			<Icon name="arrow-down" size={16} />
+		</a>
+	</section>
+
+	<section class="container section" id="featured-projects">
+		<SectionHeading title="Featured Projects">
+			A selection of core systems, algorithm platforms, and performance
+			engineering builds.
+		</SectionHeading>
+
+		<div class="project-grid">
+			{featured.map(p => <ProjectCard project={p} />)}
+		</div>
+
+		<div class="work-more">
+			<a class="btn-primary" href={getPath('/projects')}>
+				View all projects
+				<Icon name="arrow-right" size={16} />
+			</a>
+		</div>
+	</section>
+
+	<section class="container section">
+		<SectionHeading title="Experience" id="experience">
+			Where I've been putting the work in.
+		</SectionHeading>
+		<ol class="exp-list">
+			{
+				experiences.map(e => (
+					<li class="exp-item">
+						<div class="exp-head">
+							<h3 class="exp-org">
+								{e.href ? (
+									<a
+										class="exp-org-link"
+										href={e.href}
+										target="_blank"
+										rel="noreferrer"
+									>
+										{e.title}
+									</a>
+								) : (
+									e.title
+								)}
+								{e.current && (
+									<span class="exp-now" title="Current">
+										<span class="mono">Current</span>
+									</span>
+								)}
+							</h3>
+							<span class="exp-period mono">{e.period}</span>
+						</div>
+						<p class="exp-role mono">{e.role}</p>
+						<p class="exp-summary">{e.summary}</p>
+					</li>
+				))
+			}
+		</ol>
+
+		<div class="work-more">
+			<a class="btn-ghost" href={getPath('/experience')}>
+				See all experience
+				<Icon name="arrow-right" size={16} />
+			</a>
+		</div>
+	</section>
+
+	<section class="container section">
+		<div class="glow-card contact-cta">
+			<script is:inline>
+				document.addEventListener('astro:page-load', () => {
+					const el = document.querySelector('.typewriter');
+					if (!el) return;
+					const phrases = [
+						'great',
+						'different',
+						'useful',
+						'lasting',
+						'fast',
+						'solid'
+					];
+					let phraseIndex = 0;
+					let charIndex = phrases[0].length;
+					let isDeleting = true;
+					let typing = true;
+
+					const type = () => {
+						const current = phrases[phraseIndex];
+						if (isDeleting) {
+							el.textContent = current.substring(
+								0,
+								charIndex - 1
+							);
+							charIndex--;
+						} else {
+							el.textContent = current.substring(
+								0,
+								charIndex + 1
+							);
+							charIndex++;
+						}
+
+						let speed = isDeleting ? 60 : 120;
+
+						if (!isDeleting && charIndex === current.length) {
+							speed = 2000;
+							isDeleting = true;
+						} else if (isDeleting && charIndex === 0) {
+							isDeleting = false;
+							phraseIndex = (phraseIndex + 1) % phrases.length;
+							speed = 300;
+						}
+
+						if (typing) setTimeout(type, speed);
+					};
+
+					const obs = new IntersectionObserver(
+						entries => {
+							if (entries[0].isIntersecting) {
+								typing = true;
+								setTimeout(type, 1000);
+							} else {
+								typing = false;
+								charIndex = phrases[0].length;
+								isDeleting = true;
+								phraseIndex = 0;
+								el.textContent = phrases[0];
+							}
+						},
+						{ threshold: 0.2 }
+					);
+					obs.observe(el);
+				});
+			</script>
+
+			<h2 class="cta-title">
+				Let's build something <span
+					class="serif typewriter gradient-text">solid</span
+				>.
+			</h2>
+			<p class="cta-lead">
+				Open to research collaborations, lab inquiries, and challenging
+				systems problems. The fastest way to reach me is email or
+				discord.
+			</p>
+			<div class="hero-actions">
+				<a class="btn-primary" href={`mailto:${profile.email}`}>
+					<Icon name="mail" size={16} />
+					{profile.email}
+				</a>
+				<a class="btn-ghost" href={getPath('/contact')}>
+					All ways to reach me
+					<Icon name="arrow-right" size={15} />
+				</a>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<script>
+	const syncScrollHint = () => {
+		const hint = document.querySelector('.scroll-hint');
+		const nearBottom =
+			window.innerHeight + window.scrollY >=
+			document.body.scrollHeight - 4;
+		hint?.classList.toggle('is-hidden', window.scrollY > 40 || nearBottom);
+	};
+	window.addEventListener('scroll', syncScrollHint, { passive: true });
+	document.addEventListener('astro:page-load', syncScrollHint);
+	syncScrollHint();
+</script>
+
+<style>
+	.section {
+		padding-block: 4rem;
+	}
+
+	.hero {
+		min-height: 100svh;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 1.25rem;
+		padding-block: 5rem 4.5rem;
+		position: relative;
+	}
+	.hero-link {
+		color: inherit;
+		text-decoration: underline;
+		text-decoration-color: color-mix(
+			in oklab,
+			var(--accent) 45%,
+			transparent
+		);
+		text-underline-offset: 5px;
+		text-decoration-thickness: 1px;
+		transition:
+			color 0.18s ease,
+			text-decoration-color 0.18s ease;
+	}
+	.hero-link:hover {
+		color: var(--accent);
+		text-decoration-color: var(--accent);
+	}
+	.hero-name {
+		font-size: clamp(2.6rem, 8vw, 5.2rem);
+		line-height: 0.98;
+	}
+	.hero-lead {
+		font-family: var(--font-sans);
+		font-weight: 500;
+		font-size: clamp(1.3rem, 3.2vw, 2rem);
+		line-height: 1.35;
+		max-width: 32ch;
+		letter-spacing: -0.01em;
+	}
+	.hero-lead .serif {
+		font-weight: 400;
+	}
+	.hero-sub {
+		color: var(--muted);
+		font-size: 0.9rem;
+		letter-spacing: 0.05em;
+	}
+	.scroll-hint {
+		position: absolute;
+		bottom: 1.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.35rem;
+		color: var(--muted);
+		font-size: 0.66rem;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		transition:
+			opacity 0.4s ease,
+			transform 0.4s ease;
+	}
+	.scroll-hint.is-hidden {
+		opacity: 0;
+		transform: translate(-50%, 12px);
+		pointer-events: none;
+	}
+	.scroll-hint :global(svg) {
+		animation: bob 1.8s ease-in-out infinite;
+	}
+	@keyframes bob {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(4px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.scroll-hint :global(svg) {
+			animation: none;
+		}
+	}
+
+	.project-grid {
+		display: grid;
+		gap: 1.25rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 720px) {
+		.project-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	.work-more {
+		margin-top: 2.5rem;
+		display: flex;
+		justify-content: center;
+	}
+
+	.exp-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 1.25rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 720px) {
+		.exp-list {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	.exp-item {
+		padding: 1.4rem 1.5rem;
+		border-radius: 14px;
+		border: 1px solid var(--line);
+		background: color-mix(in oklab, var(--surface) 45%, transparent);
+		transition:
+			border-color 0.18s ease,
+			background-color 0.18s ease;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+	.exp-item:hover {
+		border-color: color-mix(in oklab, var(--accent) 40%, var(--line));
+		background: color-mix(in oklab, var(--surface) 70%, transparent);
+	}
+	.exp-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem 1rem;
+	}
+	.exp-org {
+		font-size: 1.25rem;
+		display: inline-flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+	}
+	.exp-org-link {
+		color: inherit;
+		transition: color 0.16s ease;
+	}
+	.exp-org-link:hover {
+		color: var(--accent);
+	}
+	.exp-now {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--accent) 35%, var(--line));
+		font-size: 0.62rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.exp-period {
+		font-size: 0.74rem;
+		color: var(--muted);
+		white-space: nowrap;
+	}
+	.exp-role {
+		margin-top: 0.35rem;
+		font-size: 0.78rem;
+		letter-spacing: 0.04em;
+		color: var(--accent);
+	}
+	.exp-summary {
+		margin-top: 0.7rem;
+		color: var(--muted);
+		font-size: 0.96rem;
+		line-height: 1.6;
+	}
+
+	.contact-cta {
+		padding: clamp(2rem, 5vw, 3.5rem);
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.1rem;
+	}
+	.cta-title {
+		font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+	}
+	.cta-lead {
+		color: var(--muted);
+		max-width: 52ch;
+		font-size: 1.02rem;
+		line-height: 1.65;
+	}
+	.contact-cta .hero-actions {
+		justify-content: center;
+		margin-top: 0.5rem;
+	}
+</style>

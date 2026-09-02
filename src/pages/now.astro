@@ -1,0 +1,361 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Icon from '../components/Icon.astro';
+import { profile, nowMeta } from '../data/site';
+import { getPath } from '../lib/url';
+import { renderLatex } from '../lib/latex';
+
+const rawItems = (await getCollection('now')).sort((a, b) => {
+	if (a.data.order !== b.data.order)
+		return (b.data.order || 0) - (a.data.order || 0);
+	return (b.data.date || '').localeCompare(a.data.date || '');
+});
+
+const nowItems = await Promise.all(
+	rawItems.map(async item => {
+		const { Content } = await render(item);
+		return { ...item, Content };
+	})
+);
+---
+
+<Base
+	title="Now"
+	description={`What ${profile.name} (${profile.nameEn}) is currently working on, researching, and focusing on.`}
+>
+	<section class="container section">
+		<SectionHeading title="Now">
+			What I'm currently working on, thinking about, and exploring.
+		</SectionHeading>
+
+		<div class="now-status-bar mono">
+			<span class="status-pulse"></span>
+			<span>{nowMeta.location} · Last updated {nowMeta.lastUpdated}</span>
+		</div>
+
+		<div class="now-list">
+			{
+				nowItems.map(item => (
+					<article class="glow-card panel">
+						<header class="panel-head">
+							<div>
+								<h2 class="panel-name">{item.data.title}</h2>
+								{(item.data.status ||
+									item.data.period ||
+									item.data.date) && (
+									<p class="panel-role mono">
+										{[
+											item.data.status,
+											item.data.period || item.data.date
+										]
+											.filter(Boolean)
+											.join(' · ')}
+									</p>
+								)}
+							</div>
+							{item.data.metric && (
+								<div class="panel-metric">
+									<span class="gradient-text panel-metric-value">
+										{item.data.metric.value}
+									</span>
+									<span class="panel-metric-label">
+										{item.data.metric.label}
+									</span>
+								</div>
+							)}
+						</header>
+
+						<div class="panel-body">
+							{item.data.summary && (
+								<p
+									class="now-summary"
+									set:html={renderLatex(item.data.summary)}
+								/>
+							)}
+							<div class="now-markdown markdown-body">
+								<item.Content />
+							</div>
+						</div>
+
+						{item.data.highlights &&
+							item.data.highlights.length > 0 && (
+								<div class="panel-highlights-box">
+									<h3 class="panel-sub mono">
+										Current Focus & Highlights
+									</h3>
+									<ul class="panel-highlights">
+										{item.data.highlights.map(h => (
+											<li set:html={renderLatex(h)} />
+										))}
+									</ul>
+								</div>
+							)}
+
+						{((item.data.tags && item.data.tags.length > 0) ||
+							(item.data.links &&
+								item.data.links.length > 0)) && (
+							<footer class="panel-footer">
+								{item.data.tags &&
+									item.data.tags.length > 0 && (
+										<ul class="tag-row">
+											{item.data.tags.map(t => (
+												<li class="tag">{t}</li>
+											))}
+										</ul>
+									)}
+								{item.data.links &&
+									item.data.links.length > 0 && (
+										<div class="panel-links">
+											{item.data.links.map(l => (
+												<a
+													class="project-link"
+													href={l.href}
+													target="_blank"
+													rel="noreferrer"
+												>
+													{l.label}
+													<Icon
+														name="arrow-up-right"
+														size={15}
+													/>
+												</a>
+											))}
+										</div>
+									)}
+							</footer>
+						)}
+					</article>
+				))
+			}
+		</div>
+
+		<div class="page-foot">
+			<div class="hero-actions">
+				<a class="btn-primary" href={getPath('/projects')}>
+					View projects
+					<Icon name="arrow-right" size={16} />
+				</a>
+				<a class="btn-ghost" href={getPath('/experience')}>
+					View experience
+				</a>
+			</div>
+		</div>
+	</section>
+</Base>
+
+<style>
+	.section {
+		padding-block: 7rem 4rem;
+	}
+	.now-status-bar {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.45rem 0.9rem;
+		margin-bottom: 2rem;
+		border-radius: 999px;
+		border: 1px solid var(--line);
+		background: color-mix(in oklab, var(--surface) 50%, transparent);
+		font-size: 0.74rem;
+		letter-spacing: 0.04em;
+		color: var(--muted);
+	}
+	.status-pulse {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--accent);
+		box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent);
+		animation: pulse-ring 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
+	}
+	@keyframes pulse-ring {
+		0% {
+			box-shadow: 0 0 0 0
+				color-mix(in oklab, var(--accent) 60%, transparent);
+		}
+		70%,
+		100% {
+			box-shadow: 0 0 0 7px transparent;
+		}
+	}
+	.now-list {
+		display: grid;
+		gap: 1.5rem;
+	}
+	.panel {
+		padding: clamp(1.5rem, 4vw, 2.4rem);
+		scroll-margin-top: 6rem;
+	}
+	.panel-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 1.2rem;
+		border-bottom: 1px solid var(--line);
+	}
+	.panel-name {
+		font-size: clamp(1.5rem, 3.5vw, 2rem);
+	}
+	.panel-role {
+		margin-top: 0.4rem;
+		font-size: 0.78rem;
+		color: var(--accent);
+		letter-spacing: 0.04em;
+	}
+	.panel-metric {
+		text-align: right;
+	}
+	.panel-metric-value {
+		display: block;
+		font-family: var(--font-sans);
+		font-weight: 700;
+		font-size: 1.8rem;
+		line-height: 1;
+	}
+	.panel-metric-label {
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+	.panel-body {
+		display: grid;
+		gap: 0.9rem;
+		margin-top: 1.3rem;
+		color: var(--muted);
+		font-size: 1.02rem;
+		max-width: 72ch;
+		line-height: 1.7;
+	}
+	.now-summary {
+		font-size: 1.05rem;
+		color: var(--fg);
+		line-height: 1.7;
+		margin-bottom: 0.2rem;
+	}
+	.now-markdown :global(p) {
+		color: var(--prose);
+		font-size: 1.02rem;
+		line-height: 1.75;
+		margin-bottom: 0.9rem;
+	}
+	.now-markdown :global(p:last-child) {
+		margin-bottom: 0;
+	}
+	.now-markdown :global(strong) {
+		color: var(--fg);
+		font-weight: 600;
+	}
+	.now-markdown :global(ul),
+	.now-markdown :global(ol) {
+		padding-left: 1.4rem;
+		margin-bottom: 0.9rem;
+		color: var(--prose);
+	}
+	.now-markdown :global(li) {
+		margin-bottom: 0.35rem;
+		line-height: 1.65;
+	}
+	.now-markdown :global(code:not(pre *)) {
+		padding: 0.15rem 0.4rem;
+		border-radius: 6px;
+		background: color-mix(in oklab, var(--surface-2) 75%, transparent);
+		border: 1px solid var(--line);
+		color: var(--accent-2);
+		font-family: var(--font-mono);
+		font-size: 0.88em;
+	}
+	.now-markdown :global(blockquote) {
+		margin: 1rem 0;
+		padding: 0.6rem 1.1rem;
+		border-left: 3px solid var(--accent);
+		background: color-mix(in oklab, var(--surface) 50%, transparent);
+		border-radius: 0 8px 8px 0;
+		font-style: italic;
+	}
+	.now-markdown :global(a) {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		transition: color 0.16s ease;
+	}
+	.now-markdown :global(a:hover) {
+		color: var(--fg);
+	}
+
+	.panel-highlights-box {
+		margin-top: 1.4rem;
+		padding-top: 1.2rem;
+		border-top: 1px solid var(--line);
+	}
+	.panel-sub {
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.9rem;
+	}
+	.panel-highlights {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.6rem;
+	}
+	.panel-highlights li {
+		position: relative;
+		padding-left: 1.4rem;
+		color: var(--fg);
+		font-size: 0.96rem;
+		line-height: 1.6;
+	}
+	.panel-highlights li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.55em;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--accent);
+	}
+
+	.panel-footer {
+		margin-top: 1.4rem;
+		padding-top: 1.2rem;
+		border-top: 1px solid var(--line);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.panel-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.8rem 1.2rem;
+	}
+	.project-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: 0.85rem;
+		color: var(--fg);
+		transition: color 0.16s ease;
+	}
+	.project-link:hover {
+		color: var(--accent);
+	}
+	.page-foot {
+		margin-top: 4.5rem;
+		display: flex;
+		justify-content: center;
+	}
+	.page-foot .hero-actions {
+		justify-content: center;
+	}
+</style>

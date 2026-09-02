@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { getPath } from '../lib/url';
+---
+
+<Base title="Not Found" description="That page doesn't exist.">
+	<section class="container notfound">
+		<span class="eyebrow mono">404 NOT FOUND</span>
+		<h1>This page <span class="serif">wandered off</span>.</h1>
+		<p>The link's broken or the page moved. Let's get you back.</p>
+		<a class="btn-primary" href={getPath('/')}>
+			<Icon name="arrow-left" size={17} />
+			Back home
+		</a>
+	</section>
+</Base>
+
+<style>
+	.notfound {
+		min-height: 70vh;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 1.1rem;
+		padding-block: 4rem;
+	}
+	.notfound h1 {
+		font-size: clamp(2.2rem, 6vw, 3.6rem);
+	}
+	.notfound p {
+		color: var(--muted);
+		font-size: 1.05rem;
+	}
+	.notfound .btn-primary {
+		margin-top: 0.5rem;
+	}
+</style>

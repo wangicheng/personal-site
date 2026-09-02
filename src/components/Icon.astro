@@ -1,0 +1,81 @@
+---
+import {
+	ArrowRight,
+	ArrowUpRight,
+	ArrowDown,
+	Mail,
+	Globe,
+	Copy,
+	Sun,
+	Moon,
+	Sparkles,
+	ChevronRight,
+	Triangle
+} from 'lucide-preact';
+import { fetchBrandSvg } from '../lib/svgl';
+
+type IconName =
+	| 'github'
+	| 'gitlab'
+	| 'discord'
+	| 'leetcode'
+	| 'mail'
+	| 'globe'
+	| 'copy'
+	| 'arrow-right'
+	| 'arrow-up-right'
+	| 'arrow-down'
+	| 'sun'
+	| 'moon'
+	| 'sparkles'
+	| 'chevron-right'
+	| 'triangle';
+
+interface Props {
+	name: IconName;
+	class?: string;
+	size?: number;
+}
+
+const { name, class: className, size = 20 } = Astro.props;
+
+const lucideMap: Partial<Record<IconName, any>> = {
+	mail: Mail,
+	globe: Globe,
+	copy: Copy,
+	'arrow-right': ArrowRight,
+	'arrow-up-right': ArrowUpRight,
+	'arrow-down': ArrowDown,
+	sun: Sun,
+	moon: Moon,
+	sparkles: Sparkles,
+	'chevron-right': ChevronRight,
+	triangle: Triangle
+};
+
+const svglTitles: Partial<
+	Record<IconName, 'github' | 'gitlab' | 'discord' | 'leetcode'>
+> = {
+	github: 'github',
+	gitlab: 'gitlab',
+	discord: 'discord',
+	leetcode: 'leetcode'
+};
+
+const LucideIcon = lucideMap[name];
+const brandKey = svglTitles[name];
+const brandSvg = brandKey ? fetchBrandSvg(brandKey, size, className) : null;
+---
+
+{
+	LucideIcon ? (
+		<LucideIcon
+			size={size}
+			strokeWidth={1.75}
+			class={className}
+			aria-hidden="true"
+		/>
+	) : brandSvg ? (
+		<Fragment set:html={brandSvg} />
+	) : null
+}
